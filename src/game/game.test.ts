@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { QUESTIONS } from "../data/questions";
+import { EXAMPLE_QUESTIONS as QUESTIONS } from "../data/questions";
 import { buildRound, toExamScale } from "./round";
 import { emptyProgress, learnedCount, mistakes, recordAnswer } from "./progress";
 
@@ -40,5 +40,17 @@ describe("progress", () => {
     expect(mistakes(p)).toEqual([]);
     expect(learnedCount(p)).toBe(1);
     expect(p.totalPoints).toBe(1);
+  });
+});
+
+describe("official bank rows", () => {
+  it("maps TAK/NIE and A/B/C rows", async () => {
+    const { fromBankRow } = await import("../data/bank");
+    const yn = fromBankRow({ id: 99, q: "Czy?", ok: "T", p: 3, c: ["B"], m: "99.webp" });
+    expect(yn).toMatchObject({ id: "99", type: "yn", answer: true, points: 3, categories: ["B"] });
+    expect(yn.image).toMatch(/bank\/img\/99\.webp$/);
+    const abc = fromBankRow({ id: 5, q: "Ile?", ok: "C", p: 2, c: ["B", "C"], o: ["1", "2", "3"] });
+    expect(abc).toMatchObject({ type: "abc", answer: 2, options: ["1", "2", "3"] });
+    expect(abc.image).toBeUndefined();
   });
 });
