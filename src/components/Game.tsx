@@ -19,6 +19,8 @@ interface Props {
 }
 
 const LETTERS = ["A", "B", "C"];
+/** After a correct answer the next card comes on its own: a swiped card needs less time than A/B/C. */
+const AUTO_NEXT_MS = { yn: 450, abc: 900 };
 
 export function Game({ round, onAnswer, onFinish, onQuit }: Props) {
   const [i, setI] = useState(0);
@@ -52,11 +54,20 @@ export function Game({ round, onAnswer, onFinish, onQuit }: Props) {
     setI(i + 1);
   }, [answer, i, round.length, stats, onFinish]);
 
-  useEffect(() => { if (answered) nextBtn.current?.focus({ preventScroll: true }); }, [answered]);
+  // Correct answers skip the explanation; only mistakes stop for it.
+  const goNextRef = useRef(goNext);
+  goNextRef.current = goNext;
+  useEffect(() => {
+    if (!answered) return;
+    if (!ok) { nextBtn.current?.focus({ preventScroll: true }); return; }
+    const t = setTimeout(() => goNextRef.current(), AUTO_NEXT_MS[q.type]);
+    return () => clearTimeout(t);
+  }, [answered, ok, q.type]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (answer !== null) {
+        if (ok) return;
         if (["Enter", " ", "ArrowRight", "ArrowLeft"].includes(e.key)) { e.preventDefault(); goNext(); }
         return;
       }
@@ -70,7 +81,7 @@ export function Game({ round, onAnswer, onFinish, onQuit }: Props) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [answer, q, answerWith, goNext]);
+  }, [answer, ok, q, answerWith, goNext]);
 
   const correctLabel = q.type === "yn" ? (q.answer ? "TAK" : "NIE") : `${LETTERS[q.answer]}. ${q.options[q.answer]}`;
 
@@ -106,15 +117,16 @@ export function Game({ round, onAnswer, onFinish, onQuit }: Props) {
           {q.type === "yn" ? "Przesuń kartę: w prawo TAK, w lewo NIE" : "Wybierz odpowiedź A, B lub C"}
         </div>
       </div>
-      <div className={`sheet${answered ? " show" : ""}${answered ? (ok ? " good" : " bad") : ""}`} role="status" aria-live="polite">
-        {answered && (
+      {answered && ok && <div className="toast" role="status">Dobrze! +{q.points} pkt</div>}
+      <div className={`sheet bad${answered && !ok ? " show" : ""}`} role="status" aria-live="polite">
+        {answered && !ok && (
           <>
-            <h3>{ok ? `Dobrze! +${q.points} pkt` : "Pudło"}</h3>
-            <div className="sq">{ok ? q.question : `Poprawna odpowiedź: ${correctLabel}`}</div>
+            <h3>Pudło</h3>
+            <div className="sq">Poprawna odpowiedź: {correctLabel}</div>
             <p>{q.explanation}</p>
           </>
         )}
-        <button ref={nextBtn} className="next" onClick={goNext} tabIndex={answered ? 0 : -1}>
+        <button ref={nextBtn} className="next" onClick={goNext} tabIndex={answered && !ok ? 0 : -1}>
           {i + 1 >= round.length ? "Zobacz wynik" : "Dalej"}
         </button>
       </div>

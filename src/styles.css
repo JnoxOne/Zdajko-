@@ -139,8 +139,16 @@ button:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 }
 .sheet.show { transform: none; visibility: visible; }
 .sheet.bad { border-top-color: var(--no); }
+.toast {
+  position: absolute; left: 50%; bottom: calc(110px + env(safe-area-inset-bottom, 0px)); z-index: 5;
+  transform: translateX(-50%); white-space: nowrap;
+  background: var(--yes); color: #fff; border-radius: 999px; padding: 8px 18px;
+  font: 800 20px var(--display); letter-spacing: 0.04em; text-transform: uppercase;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: toast 0.45s ease-out;
+}
+@keyframes toast { from { opacity: 0; transform: translate(-50%, 12px) scale(0.9); } }
 .sheet h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase; letter-spacing: 0.02em; }
-.sheet.good h3 { color: var(--yes); }
 .sheet.bad h3 { color: var(--no); }
 .sheet .sq { margin-top: 6px; font-size: 13px; color: var(--ink-soft); }
 .sheet p { margin: 8px 0 14px; line-height: 1.45; }
@@ -180,5 +188,5 @@ button:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .card, .card.fly, .card.under, .sheet, .bar i { transition: none; }
-  .bump { animation: none; }
+  .bump, .toast { animation: none; }
 }
