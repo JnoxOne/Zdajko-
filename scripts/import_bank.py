@@ -28,18 +28,23 @@ def media_index(root):
     return index
 
 
+def written(path):
+    # ffmpeg sometimes leaves an empty 8-byte file behind instead of failing.
+    return os.path.exists(path) and os.path.getsize(path) > 1000
+
+
 def convert(src, dst):
-    if os.path.exists(dst):
+    if written(dst):
         return True
     video = not src.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif"))
     cmd = ["ffmpeg", "-v", "error", "-y"]
     cmd += ["-sseof", "-0.4", "-i", src] if video else ["-i", src]
     cmd += ["-frames:v", "1", "-vf", f"scale='min({WIDTH},iw)':-2", "-c:v", "libwebp", "-quality", "72", dst]
-    ok = subprocess.run(cmd, capture_output=True).returncode == 0 and os.path.exists(dst)
+    ok = subprocess.run(cmd, capture_output=True).returncode == 0 and written(dst)
     if not ok and video:
         # Very short clips: take the first frame instead.
         cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, "-frames:v", "1", "-vf", f"scale='min({WIDTH},iw)':-2", "-c:v", "libwebp", "-quality", "72", dst]
-        ok = subprocess.run(cmd, capture_output=True).returncode == 0 and os.path.exists(dst)
+        ok = subprocess.run(cmd, capture_output=True).returncode == 0 and written(dst)
     return ok
 
 
