@@ -89,6 +89,8 @@ button:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 .kind { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); }
 .visual { flex: 1; min-height: 80px; display: grid; place-items: center; padding: 8px 0; }
 .visual.none { flex: 0.4; }
+.photo { width: 100%; height: auto; max-height: 100%; object-fit: contain; border-radius: 10px; background: #e9e6dd; pointer-events: none; }
+.visual:has(.photo) { padding: 10px 0; min-height: 0; }
 .sign { height: 150px; max-height: 100%; display: grid; place-items: center; }
 .sign svg { height: 100%; width: auto; max-width: 70vw; }
 .q { font-family: var(--display); font-weight: 700; font-size: clamp(21px, 6vw, 27px); line-height: 1.12; text-wrap: balance; }
@@ -151,7 +153,8 @@ button:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 .sheet h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase; letter-spacing: 0.02em; }
 .sheet.bad h3 { color: var(--no); }
 .sheet .sq { margin-top: 6px; font-size: 13px; color: var(--ink-soft); }
-.sheet p { margin: 8px 0 14px; line-height: 1.45; }
+.sheet p { margin: 8px 0 0; line-height: 1.45; }
+.sheet .next { margin-top: 14px; }
 .next { width: 100%; border: 0; border-radius: 12px; padding: 13px; cursor: pointer; background: var(--ink); color: #fff; font: 800 18px var(--display); letter-spacing: 0.08em; text-transform: uppercase; }
 
 /* ---------- home & results ---------- */
@@ -165,6 +168,7 @@ button:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 .summary span { font-family: var(--display); font-weight: 700; font-size: 28px; font-variant-numeric: tabular-nums; }
 .summary em { font-style: normal; font-size: 16px; color: var(--muted); }
 .actions { display: grid; gap: 10px; }
+.primary:disabled { opacity: 0.6; cursor: default; }
 .primary { border: 0; border-radius: 14px; padding: 16px; cursor: pointer; background: var(--lane); color: var(--ink); font: 800 22px var(--display); letter-spacing: 0.08em; text-transform: uppercase; }
 .ghost { border: 2px solid var(--lane); background: transparent; color: var(--lane); border-radius: 14px; padding: 12px; font: 800 18px var(--display); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
 .ghost:disabled { border-color: var(--line); color: var(--muted); cursor: default; }
@@ -190,3 +194,17 @@ button:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
   .card, .card.fly, .card.under, .sheet, .bar i { transition: none; }
   .bump, .toast { animation: none; }
 }
+
+/* ---------- category picker ---------- */
+.picker { grid-row: 1 / -1; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-block: 8px 20px; }
+.cats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cat-tile {
+  display: grid; gap: 2px; text-align: left; cursor: pointer;
+  background: var(--asphalt-2); color: var(--text); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px;
+}
+.cat-tile:hover, .cat-tile.on { border-color: var(--lane); }
+.cat-tile b { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; color: var(--lane); }
+.cat-tile span { font-weight: 600; font-size: 14px; line-height: 1.25; }
+.cat-tile small { font-size: 11px; color: var(--muted); }
+.chip { align-self: flex-start; background: none; border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-weight: 600; font-size: 13px; }
+.chip b { color: var(--lane); font-family: var(--display); font-size: 16px; }

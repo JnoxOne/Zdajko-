@@ -65,11 +65,13 @@ export function Card({ question: q, answer, onAnswer, under, rising }: Props) {
       <div className="meta">
         <span className="cat">{q.category}</span>
         <span className="meta-right">
-          {q.type === "abc" && <span className="kind">Specjalistyczne · A/B/C</span>}
+          {q.type === "abc" && <span className="kind">A / B / C</span>}
           <span className="pts">{q.points} pkt</span>
         </span>
       </div>
-      <div className={q.sign ? "visual" : "visual none"}>{q.sign && <Sign id={q.sign} />}</div>
+      <div className={q.image || q.sign ? "visual" : "visual none"}>
+        {q.image ? <img className="photo" src={q.image} alt="" draggable={false} /> : q.sign && <Sign id={q.sign} />}
+      </div>
       <div className="q">{q.question}</div>
       {q.type === "abc" ? (
         <div className="opts">

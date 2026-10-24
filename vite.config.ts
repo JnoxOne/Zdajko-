@@ -13,6 +13,14 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
+      workbox: {
+        // The question bank is large: cache its pictures as they are seen instead of all upfront.
+        globIgnores: ["bank/**"],
+        runtimeCaching: [
+          { urlPattern: /\/bank\/questions\.json$/, handler: "StaleWhileRevalidate", options: { cacheName: "bank-questions" } },
+          { urlPattern: /\/bank\/img\//, handler: "CacheFirst", options: { cacheName: "bank-images", expiration: { maxEntries: 4000 } } }
+        ]
+      },
       manifest: {
         name: "Zdajko – nauka na prawo jazdy",
         short_name: "Zdajko",

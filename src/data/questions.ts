@@ -1,5 +1,5 @@
-// Example questions written from the traffic rules for the first version.
-// They will be replaced by the official exam question base (with photos and videos).
+// Example questions written from the traffic rules. The app uses them only when the
+// official question bank (public/bank, see scripts/import_bank.py) is not available.
 
 export type SignId = "stop" | "yield" | "limit70" | "priority" | "noOvertake" | "crossing" | "arrow" | "triangle";
 
@@ -8,11 +8,16 @@ export type Points = 1 | 2 | 3;
 
 interface Base {
   id: string;
+  /** Label shown on the card, e.g. a topic or the exam part. */
   category: string;
   question: string;
   points: Points;
-  explanation: string;
+  /** Licence categories (B, A, C...) the question belongs to. */
+  categories: string[];
+  explanation?: string;
   sign?: SignId;
+  /** Picture URL from the official bank. */
+  image?: string;
 }
 
 /** Basic question, answered TAK (swipe right) or NIE (swipe left). */
@@ -30,7 +35,9 @@ export interface AbcQuestion extends Base {
 
 export type Question = YesNoQuestion | AbcQuestion;
 
-export const QUESTIONS: Question[] = [
+type Example = Omit<YesNoQuestion, "categories"> | Omit<AbcQuestion, "categories">;
+
+const EXAMPLES: Example[] = [
   { id: "yn-stop", type: "yn", category: "Znaki", sign: "stop", points: 3, answer: true,
     question: "Czy przed tym znakiem musisz zatrzymać pojazd, nawet gdy na skrzyżowaniu nic nie jedzie?",
     explanation: "Znak B-20 „STOP” nakazuje zawsze zatrzymać pojazd przed linią lub krawędzią jezdni i ustąpić pierwszeństwa." },
@@ -115,3 +122,7 @@ export const QUESTIONS: Question[] = [
     options: ["60 z 74", "68 z 74", "74 z 74"],
     explanation: "Egzamin to 32 pytania i maksymalnie 74 punkty. Do zaliczenia potrzeba 68." }
 ];
+
+const ALL_BUT_TRAM = ["A", "B", "C", "D", "T", "AM", "A1", "A2", "B1", "C1", "D1"];
+
+export const EXAMPLE_QUESTIONS: Question[] = EXAMPLES.map(q => ({ ...q, categories: ALL_BUT_TRAM }) as Question);

@@ -123,7 +123,7 @@ export function Game({ round, onAnswer, onFinish, onQuit }: Props) {
           <>
             <h3>Pudło</h3>
             <div className="sq">Poprawna odpowiedź: {correctLabel}</div>
-            <p>{q.explanation}</p>
+            {q.explanation && <p>{q.explanation}</p>}
           </>
         )}
         <button ref={nextBtn} className="next" onClick={goNext} tabIndex={answered && !ok ? 0 : -1}>
