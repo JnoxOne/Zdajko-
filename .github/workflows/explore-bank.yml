@@ -1,0 +1,46 @@
+name: Rozpoznanie bazy pytań
+
+on:
+  push:
+    branches: [baza-pytan]
+    paths: [.github/workflows/explore-bank.yml]
+
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz pliki
+        run: |
+          curl -sSL -o katalog.xlsx "https://www.gov.pl/attachment/a5c6c329-28a5-4274-a1a8-e2813f0a51bd"
+          curl -sSL -o media1.zip "https://www.gov.pl/pliki/mi/multimedia_do_pytan.zip"
+          curl -sSL -o media2.zip "https://www.gov.pl/attachment/71d22a89-4c2d-4b08-9f47-99286bb0c964"
+          ls -la
+          file katalog.xlsx media1.zip media2.zip
+      - name: Arkusz
+        run: |
+          pip install -q openpyxl
+          python3 - <<'PY'
+          import openpyxl, collections
+          wb = openpyxl.load_workbook("katalog.xlsx", read_only=True)
+          for ws in wb.worksheets:
+              rows = list(ws.iter_rows(values_only=True))
+              print("SHEET", ws.title, len(rows))
+              for r in rows[:6]: print(r)
+              hdr = rows[0]
+              for i, h in enumerate(hdr):
+                  vals = collections.Counter(str(r[i])[:40] for r in rows[1:] if i < len(r))
+                  print("COL", i, h, "distinct", len(vals), vals.most_common(6))
+          PY
+      - name: Multimedia
+        run: |
+          for z in media1.zip media2.zip; do
+            echo "== $z"; unzip -l "$z" | tail -1
+            unzip -Z1 "$z" | sed 's/.*\.//' | sort | uniq -c
+            unzip -l "$z" | head -8
+          done
+          unzip -q media1.zip -d m1 && unzip -q media2.zip -d m2 || true
+          sudo apt-get install -y -qq ffmpeg >/dev/null 2>&1
+          for f in $(find m1 m2 -type f | grep -iE '\.(mp4|wmv|avi|mov)$' | head -2) $(find m1 m2 -type f | grep -iE '\.(jpg|jpeg|png)$' | head -2); do echo "-- $f"; ls -la "$f"; ffprobe -v error -show_entries format=duration:stream=codec_name,width,height -of compact "$f"; done
+          du -sh m1 m2
+          find m1 m2 -type f -iname '*.mp4' -o -type f -iname '*.wmv' | xargs -r du -ch | tail -1
+          find m1 m2 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) | xargs -r du -ch | tail -1
