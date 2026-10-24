@@ -33,19 +33,32 @@ def written(path):
     return os.path.exists(path) and os.path.getsize(path) > 1000
 
 
-def convert(src, dst):
+def run(cmd):
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    return res.returncode == 0, res.stderr.strip()[-300:]
+
+
+def convert(src, dst, verbose=False):
     if written(dst):
         return True
+    scale = ["-vf", f"scale='min({WIDTH},iw)':-2", "-c:v", "libwebp", "-quality", "72"]
     video = not src.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".gif"))
-    cmd = ["ffmpeg", "-v", "error", "-y"]
-    cmd += ["-sseof", "-0.4", "-i", src] if video else ["-i", src]
-    cmd += ["-frames:v", "1", "-vf", f"scale='min({WIDTH},iw)':-2", "-c:v", "libwebp", "-quality", "72", dst]
-    ok = subprocess.run(cmd, capture_output=True).returncode == 0 and written(dst)
-    if not ok and video:
-        # Very short clips: take the first frame instead.
-        cmd = ["ffmpeg", "-v", "error", "-y", "-i", src, "-frames:v", "1", "-vf", f"scale='min({WIDTH},iw)':-2", "-c:v", "libwebp", "-quality", "72", dst]
-        ok = subprocess.run(cmd, capture_output=True).returncode == 0 and written(dst)
-    return ok
+    if video:
+        attempts = [
+            # Decode the last seconds and keep overwriting the output, so the last frame wins.
+            ["ffmpeg", "-v", "error", "-y", "-sseof", "-2", "-i", src, *scale, "-f", "image2", "-update", "1", dst],
+            ["ffmpeg", "-v", "error", "-y", "-i", src, *scale, "-f", "image2", "-update", "1", dst],
+            ["ffmpeg", "-v", "error", "-y", "-i", src, "-frames:v", "1", *scale, dst],
+        ]
+    else:
+        attempts = [["ffmpeg", "-v", "error", "-y", "-i", src, "-frames:v", "1", *scale, dst]]
+    for cmd in attempts:
+        ok, err = run(cmd)
+        if ok and written(dst):
+            return True
+        if verbose:
+            print("  attempt failed:", " ".join(cmd[4:7]), "|", err)
+    return False
 
 
 def main(xlsx, media_dir, out_dir):
